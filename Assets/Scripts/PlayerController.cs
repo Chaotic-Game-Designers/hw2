@@ -1,33 +1,42 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PlayerController : MonoBehaviour
 {
-    public float speed = 5f;
-    private float tiltAngle = 45f;
-    private Rigidbody2D rb;
+    public float upwardAngle = -45;
+    public float downwardAngle = -135;
+    public float verticalSpeed = 5f;
+    private Vector2 direction;
 
-    // Start is called before the first frame update
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        SetMovement(Vector2.down);
+        direction = Vector2.down;
+        transform.rotation = Quaternion.Euler(0, 0, downwardAngle);
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (Input.GetKey(KeyCode.Space))
-            SetMovement(Vector2.up);
-        else
-            SetMovement(Vector2.down);
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            direction.y = -direction.y;
+            if (direction.y > 0)
+            {
+                transform.rotation = Quaternion.Euler(0, 0, upwardAngle);
+            }
+            else
+            {
+                transform.rotation = Quaternion.Euler(0, 0, downwardAngle);
+            }
+        }
+
+        transform.Translate(Time.deltaTime * verticalSpeed * direction, Space.World);
     }
 
-    private void SetMovement(Vector2 direction)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        float angle = tiltAngle * (direction == Vector2.up ? 1 : -1);
-        transform.rotation = Quaternion.Euler(0, 0, angle);
-        rb.velocity = transform.up * speed;
+        if (collision.gameObject.CompareTag("Obstacle") || collision.gameObject.CompareTag("Wall"))
+        {
+            FindObjectOfType<GameController>().GameOver();
+        }
     }
 }
